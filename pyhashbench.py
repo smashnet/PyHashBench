@@ -19,6 +19,7 @@ import multiprocessing
 import argparse
 
 current_time_millis = lambda: int(round(time.time() * 1000))
+cores = multiprocessing.cpu_count()
 
 def findHashes((zeroes, count, challenge)):
   zeroes, count, challenge = (zeroes, count, challenge)
@@ -39,41 +40,53 @@ def findHashes((zeroes, count, challenge)):
 
   return (counter, count)
 
+def genChallenge(size):
+  challenge = []
+
+  # Create a random string of letters of size "size"
+  for i in range(0,size):
+	  challenge.append(random.choice(string.letters))
+
+  return ''.join(challenge)
+ 
 
 if __name__ == '__main__':
-  cores = multiprocessing.cpu_count()
-  print "Found {0} cores!".format(cores)
-
+  # Handle command line args
   aparse = argparse.ArgumentParser(description='Benchmark your CPU calculating SHA256 hashes.')
   aparse.add_argument('--threads', type=int, default=cores, help='Number of threads to be used')
   aparse.add_argument('--zeroes', type=int, default=4, help='Number of heading zeroes a hash must have')
   aparse.add_argument('--hashes', type=int, default=1000000, help='Number of hash tries')
   args = aparse.parse_args()
 
+  # Say hi!
+  print "Found {0} cores!".format(cores)
   print "Using {0} threads!".format(args.threads)
   print "Generating challenge ..."
 
-  challenge = []
-
-  for i in range (0,10):
-	  challenge.append(random.choice(string.letters))
-
-  challenge = ''.join(challenge)
+  # Get random challenge
+  challenge = genChallenge(10)
   print "\t -> {0}".format(challenge)
 
+  # Start the clock!
   timebefore = current_time_millis()
 
+  # Do the stuff
   p = multiprocessing.Pool(args.threads)
   res = p.map(findHashes, [(args.zeroes, args.hashes/args.threads, challenge) for i in range(0,args.threads)])
   
+  # Aaaaand, stop!!
   timeafter = current_time_millis()
+
+  # That was fast, wasn't it?
   duration = timeafter - timebefore
 
   totalFound = 0
   totalTested = 0
+  # Let's see what we got :)
   for found,tested in res:
     totalFound += found
     totalTested += tested
 
+  # Tell the world
   print "Found {0} hashes. Tested {1} hashes using {2} cores.".format(totalFound, totalTested, args.threads)
   print "This took {0:0.3f} seconds.\nBye bye!".format(duration/1000.0)
