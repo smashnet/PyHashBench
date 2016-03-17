@@ -5,15 +5,19 @@ A tiny tool that finds SHA256 hashes starting with a certain amount of zeros for
 
 For a default run just type:
 
-  python pyhashbench.py
+```
+python pyhashbench.py
+```
 
 The default run will utilize all available CPU cores and test 1.000.000 variations of a random challenge whether their SHA256 hash starts with four zeros.
 
 However, you can easily set custom values:
 
-  --threads n   (The number of threads to be used. Default: No. of detected CPU cores)
-  --zeros n     (The number of zeros a matching hash should start with. Default: 4)
-  --hashes n    (The number of hashes to be calculated. Default: 1.000.000)
+```
+--threads n   (The number of threads to be used. Default: No. of detected CPU cores)
+--zeros n     (The number of zeros a matching hash should start with. Default: 4)
+--hashes n    (The number of hashes to be calculated. Default: 1.000.000)
+```
 
 ##What does it do?
 1. At first we create a random challenge e.g. "abcde"
