@@ -21,22 +21,22 @@ import argparse
 current_time_millis = lambda: int(round(time.time() * 1000))
 cores = multiprocessing.cpu_count()
 
-def findHashes((zeroes, count, challenge)):
-  zeroes, count, challenge = (zeroes, count, challenge)
+def findHashes(params):
+  zeros, count, challenge = params
   current = 0
   counter = 0
-  checkstring = ''.rjust(zeroes,'0')
+  checkstring = ''.rjust(zeros,'0')
 
   random.seed()
   while(current < count):
     current += 1
     
     head = str(random.randint(0,99999999)) + challenge
-    res = hashlib.sha256(head).hexdigest()
+    res = hashlib.sha1(head.encode('utf-8')).hexdigest()
 
     if res.startswith(checkstring):
       counter += 1
-      print "sha256({0})\t-> {1}".format(head, res)
+      print("sha1({0})\t-> {1}".format(head, res))
 
   return (counter, count)
 
@@ -45,7 +45,7 @@ def genChallenge(size):
 
   # Create a random string of letters of size "size"
   for i in range(0,size):
-	  challenge.append(random.choice(string.letters))
+	  challenge.append(random.choice(string.ascii_letters))
 
   return ''.join(challenge)
  
@@ -54,25 +54,26 @@ if __name__ == '__main__':
   # Handle command line args
   aparse = argparse.ArgumentParser(description='Benchmark your CPU calculating SHA256 hashes.')
   aparse.add_argument('--threads', type=int, default=cores, help='Number of threads to be used')
-  aparse.add_argument('--zeroes', type=int, default=4, help='Number of heading zeroes a hash must have')
+  aparse.add_argument('--zeros', type=int, default=4, help='Number of heading zeros a hash must have')
   aparse.add_argument('--hashes', type=int, default=1000000, help='Number of hash tries')
   args = aparse.parse_args()
 
   # Say hi!
-  print "Found {0} cores!".format(cores)
-  print "Using {0} threads!".format(args.threads)
-  print "Generating challenge ..."
+  print("Found {0} cores!".format(cores))
+  print("Using {0} threads!".format(args.threads))
+  print("Generating challenge ...")
 
   # Get random challenge
   challenge = genChallenge(10)
-  print "\t -> {0}".format(challenge)
+  print("\t -> {0}".format(challenge))
 
   # Start the clock!
   timebefore = current_time_millis()
 
   # Do the stuff
   p = multiprocessing.Pool(args.threads)
-  res = p.map(findHashes, [(args.zeroes, args.hashes/args.threads, challenge) for i in range(0,args.threads)])
+  params = (args.zeros, args.hashes/args.threads, challenge)
+  res = p.map(findHashes, [params for i in range(0,args.threads)])
   
   # Aaaaand, stop!!
   timeafter = current_time_millis()
@@ -88,5 +89,5 @@ if __name__ == '__main__':
     totalTested += tested
 
   # Tell the world
-  print "Found {0} hashes. Tested {1} hashes using {2} cores.".format(totalFound, totalTested, args.threads)
-  print "This took {0:0.3f} seconds.\nBye bye!".format(duration/1000.0)
+  print("Found {0} hashes. Tested {1} hashes using {2} cores.".format(totalFound, totalTested, args.threads))
+  print("This took {0:0.3f} seconds.\nBye bye!".format(duration/1000.0))
